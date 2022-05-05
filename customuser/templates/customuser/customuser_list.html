@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h3>User List</h3>
+{% if customuser_list %}
+  <ul>
+    {% for cu in customuser_list %}
+      <li>
+        <p class="username" >{{ cu }}</p>
+        <button class="follow-button" id="{{ cu.id }}">follow</button>
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p>there are no user.</p>
+{% endif %}
+{% endblock content %}
+{% block extrajs %}
+<script>
+  const csrftoken = Cookies.get('csrftoken');
+  function csrfSafeMethod(method) {
+    return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+  }
+  $.ajaxSetup({
+    beforeSend: function (xhr, settings) {
+      if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+        xhr.setRequestHeader("X-CSRFToken", csrftoken);
+      }
+    }
+  });
+  $('.follow-button').on('click', function(e) {
+    e.preventDefault();
+    const user_id = $(this).attr("id");
+    console.log(user_id);
+    $.ajax({
+      'url': '{% url "customuser:send-follow-request" %}',
+      'type': 'POST',
+      'data': {
+        'user_id': user_id,
+      },
+      'dataType': 'json',
+    })
+    .done(response => {
+      console.log("done");
+    })
+    .fail((XMLHttpRequest, testStatus, errorThrown) => {
+      alert(errorThrown);
+    });
+  });
+</script>
+{% endblock extrajs %}
